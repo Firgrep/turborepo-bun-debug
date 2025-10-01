@@ -1,0 +1,189 @@
+name: CI/CD
+
+on:
+  workflow_dispatch:
+    inputs:
+      deploy_mode:
+        description: "Deployment mode"
+        required: true
+        default: "manual"
+        type: choice
+        options:
+          # - 'auto'
+          - "manual"
+          - "all"
+          - "none"
+
+      packages:
+        description: "Packages to deploy (comma-separated). Only used in manual mode. Use 'turbo ls' to see all packages."
+        required: false
+        type: string
+
+  push:
+    branches:
+      - main
+
+run-name: "${{ inputs.packages }}"
+
+jobs:
+  detect-affected:
+    runs-on: ubuntu-latest
+    outputs:
+      affected-apps: ${{ steps.affected.outputs.apps }}
+      has-affected: ${{ steps.affected.outputs.has-affected }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.ref }}
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.2.23
+
+      - name: Install dependencies only for deploy-ctl
+        run: bun install --frozen-lockfile --filter="@lib/deploy-ctl"
+
+      - name: Check for deployables duplicates
+        shell: bash
+        run: bunx turbo run deploy:check-all
+
+      - name: Detect affected apps
+        id: affected
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ ${{ github.event_name }} == "workflow_dispatch" ]]; then
+            DEPLOY_MODE="${{ github.event.inputs.deploy_mode }}"
+            
+            case "$DEPLOY_MODE" in
+              "manual")
+                PACKAGES_INPUT="${{ github.event.inputs.packages }}"
+
+                if [[ -z "$PACKAGES_INPUT" ]]; then
+                  echo "❌ Manual mode requires packages to be specified"
+                  echo "apps=[]" >> "$GITHUB_OUTPUT"
+                  echo "has-affected=false" >> "$GITHUB_OUTPUT"
+                  exit 1
+                fi
+
+                PACKAGES_JSON=$(echo "$PACKAGES_INPUT" | jq -Rc 'split(",") | map(gsub("^\\s+|\\s+$"; "")) | map(select(length > 0))')
+                echo "apps=$PACKAGES_JSON" >> "$GITHUB_OUTPUT"
+                echo "has-affected=true" >> "$GITHUB_OUTPUT"
+                echo "✍️ Manual deployment requested for: $PACKAGES_JSON"
+                exit 0
+                ;;
+              "all")
+                # Deploy all apps with deploy script
+                ALL_APPS=$(bunx turbo ls --output=json | jq -c '.packages.items | map(.name) | map(select(startswith("@lib/") | not))')
+                echo "apps=$ALL_APPS" >> "$GITHUB_OUTPUT"
+                echo "has-affected=true" >> "$GITHUB_OUTPUT"
+                echo "🚀 Deploying all apps: $ALL_APPS"
+                exit 0
+                ;;
+              "none")
+                echo "apps=[]" >> "$GITHUB_OUTPUT"
+                echo "has-affected=false" >> "$GITHUB_OUTPUT"
+                echo "🚫 No deployment requested"
+                exit 0
+                ;;
+              "auto")
+                echo "🤖 Proceeding with automatic detection..."
+                ;;
+            esac
+          fi
+
+          CURRENT_BRANCH=$(git branch --show-current)
+          if [[ "$CURRENT_BRANCH" != "main" ]]; then
+              git fetch origin main:main
+          fi
+
+          if [[ ${{ github.event_name }} == "workflow_dispatch" ]]; then
+            echo "Manually triggered workflow detected. Customizing base and head..."
+            TURBO_SCM_BASE=$(git merge-base "origin/main" "${{ github.ref_name }}")
+            TURBO_SCM_HEAD=$(git rev-parse HEAD)
+          fi
+
+          # Get JSON dry run from Turbo (some versions use --dry=json, others --dry-run=json).
+          # Try both; fall back to empty array on failure.
+          RAW_JSON="$(
+            bunx turbo run deploy --affected --dry=json --output-logs=none 2>/dev/null \
+            || bunx turbo run deploy --affected --dry-run=json --output-logs=none 2>/dev/null \
+            || echo '[]'
+          )"
+
+          # Support either shape: an array of tasks, or { tasks: [...] }.
+          PACKAGES_JSON="$(echo "$RAW_JSON" \
+            | jq -c '( .tasks // . )                 # take .tasks if present, else the value itself
+            | map(select(.package != null))          # keep items with a package
+            | map(.package)                          # extract package names
+            | map(select(startswith("@lib/") | not)) # filter out @lib/*
+            | unique                                 # de-dupe
+            ' || echo '[]')"
+
+          echo "apps=$PACKAGES_JSON" >> "$GITHUB_OUTPUT"
+
+          if [ "$PACKAGES_JSON" = "[]" ]; then
+            echo "has-affected=false" >> "$GITHUB_OUTPUT"
+            echo "No affected apps."
+          else
+            echo "has-affected=true" >> "$GITHUB_OUTPUT"
+            echo "Affected apps: $PACKAGES_JSON"
+          fi
+
+  deploy:
+    needs: detect-affected
+    if: needs.detect-affected.outputs.has-affected == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        app: ${{ fromJson(needs.detect-affected.outputs.affected-apps) }}
+      fail-fast: false # Continue deploying other apps even if one fails
+    env:
+      PROJECT_ID: cerebro-401111
+      REGION: europe-north1
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.ref }}
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: 1.2.23
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Check types
+        shell: bash
+        run: bunx turbo run ct --filter=${{ matrix.app }}
+
+      - name: Deploy ${{ matrix.app }}
+        run: |
+          bunx turbo run deploy --filter=${{ matrix.app }}
+
+  deploy-summary:
+    needs: [detect-affected, deploy]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Report deployment status
+        run: |
+          if [ "${{ needs.detect-affected.result }}" != "success" ]; then
+            echo "❌ Detection phase failed - deployment aborted"
+            exit 1
+          elif [ "${{ needs.detect-affected.outputs.has-affected }}" = "false" ]; then
+            echo "☑️ No affected apps to deploy"
+          elif [ "${{ needs.deploy.result }}" = "success" ]; then
+            echo "✅ All affected apps deployed successfully"
+          else
+            echo "❌ Some deployments failed - check individual job results"
+            exit 1
+          fi

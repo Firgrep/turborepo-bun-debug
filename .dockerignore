@@ -1,0 +1,49 @@
+key.json
+**/key.json
+Dockerfile*
+docker-compose*
+.dockerignore
+.git
+.gitignore
+README.md
+LICENSE
+.vscode
+Makefile
+helm-charts
+.env
+.editorconfig
+.idea
+coverage*
+.vs
+bin
+obj
+libs
+.env
+INSTALL.md
+
+# Binaries
+*.dll
+*.exe
+*.so
+*.dylib
+
+# Build directories
+bin/
+obj/
+runtimes/
+
+# Output and log files
+*.pdf
+
+# Temporary files
+*.tmp
+*.log
+
+# IDE specific files
+.vscode/
+*.sln.ide
+
+# Generated files
+*.deps.json
+*.runtimeconfig.json
+*.pdb

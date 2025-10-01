@@ -1,0 +1,25 @@
+{
+    "name": "@lib/deploy-ctl",
+    "version": "1.0.0",
+    "main": "dist/core.js",
+    "types": "dist/core.d.ts",
+    "bin": {
+        "deploy-ctl": "dist/cli.js"
+    },
+    "files": [
+        "dist"
+    ],
+    "scripts": {
+        "build": "tsc --project tsconfig.build.json && bun install",
+        "ct": "tsc --noEmit",
+        "deploy:check-all": "bun run deploy-ctl check"
+    },
+    "dependencies": {
+        "commander": "catalog:",
+        "zod": "catalog:"
+    },
+    "devDependencies": {
+        "@types/bun": "catalog:dev",
+        "typescript": "catalog:dev"
+    }
+}

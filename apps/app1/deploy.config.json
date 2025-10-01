@@ -1,0 +1,9 @@
+{
+    "deployables": [
+        {
+            "name": "app1",
+            "kind": "service",
+            "secrets": []
+        }
+    ]
+}

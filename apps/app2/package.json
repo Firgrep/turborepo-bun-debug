@@ -1,0 +1,26 @@
+{
+    "name": "listing_images_publisher",
+    "module": "index.ts",
+    "type": "module",
+    "scripts": {
+        "ct": "tsc --pretty --noEmit",
+        "deploy": "bun run deploy-ctl",
+        "deploy:validate": "bun run deploy-ctl --dry-run --silent",
+        "start:prod": "bun run index.ts"
+    },
+    "dependencies": {
+        "@lib/deploy-ctl": "workspace:*",
+        "@lib/http-server-listen": "workspace:*",
+        "@lib/mongo-watcher": "workspace:*",
+        "@lib/publisher": "workspace:*",
+        "@lib/types": "workspace:*",
+        "@lib/config-loader": "workspace:*",
+        "@lib/utils": "workspace:*",
+        "mongodb": "catalog:"
+    },
+    "devDependencies": {
+        "@types/bun": "catalog:dev",
+        "@types/express": "catalog:dev",
+        "typescript": "catalog:dev"
+    }
+}

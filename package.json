@@ -1,0 +1,32 @@
+{
+    "name": "dp",
+    "version": "1.0.0",
+    "private": true,
+    "packageManager": "bun@1.2.23",
+    "workspaces": {
+        "packages": [
+            "lib/*",
+            "apps/*",
+            "services/*"
+        ],
+        "catalog": {
+            "commander": "^14",
+            "dayjs": "1.11.0",
+            "mongodb": "6.8.0",
+            "zod": "^3.23.8"
+        },
+        "catalogs": {
+            "dev": {
+                "prettier": "3.3.3",
+                "tidyclass": "^0.1.0",
+                "typescript": "^5.8.0"
+            }
+        }
+    },
+    "devDependencies": {
+        "turbo": "^2.5.9-canary.0"
+    },
+    "scripts": {
+        "cd:branch": "gh workflow run ci_cd.yml --ref $(git rev-parse --abbrev-ref HEAD)"
+    }
+}

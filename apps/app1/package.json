@@ -1,0 +1,20 @@
+{
+    "name": "app1",
+    "module": "index.ts",
+    "type": "module",
+    "scripts": {
+        "ct": "tsc --pretty --noEmit",
+        "deploy": "bun run deploy-ctl",
+        "deploy:validate": "bun run deploy-ctl --dry-run --silent",
+        "start:prod": "bun run index.ts"
+    },
+    "dependencies": {
+        "dayjs": "catalog:",
+        "mongodb": "catalog:",
+        "zod": "catalog:"
+    },
+    "devDependencies": {
+        "@types/bun": "catalog:dev",
+        "typescript": "catalog:dev"
+    }
+}
