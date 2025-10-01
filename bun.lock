@@ -46,7 +46,7 @@
   },
   "catalog": {
     "commander": "^14",
-    "dayjs": "1.11.0",
+    "dayjs": "1.10.0",
     "mongodb": "6.8.0",
     "zod": "^3.23.8",
   },
@@ -85,7 +85,7 @@
 
     "csstype": ["csstype@3.1.3", "", {}, "sha512-M1uQkMl8rQK/szD0LNhtqxIPLpimGm8sOBwU7lLnCpSbTyY3yeU1Vc7l4KT5zT4s/yOxHH5O7tIuuLOCnLADRw=="],
 
-    "dayjs": ["dayjs@1.11.0", "", {}, "sha512-JLC809s6Y948/FuCZPm5IX8rRhQwOiyMb2TfVVQEixG7P8Lm/gt5S7yoQZmC8x1UehI9Pb7sksEt4xx14m+7Ug=="],
+    "dayjs": ["dayjs@1.10.0", "", {}, "sha512-U/yusl5TQPvU1Tlhsu3A82Ebn4BNKHJMIk9AePYHCmGtTXcuPkODiEhkzqA8mnQ0bbgoR6+oha2ioZEewOiP2A=="],
 
     "memory-pager": ["memory-pager@1.5.0", "", {}, "sha512-ZS4Bp4r/Zoeq6+NLJpP+0Zzm0pR8whtGPf1XExKLJBAczGMnSi3It14OiNCStjQjM6NU1okjQGSxgEZN8eBYKg=="],
 
