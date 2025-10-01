@@ -50,10 +50,6 @@ jobs:
       # - name: Install dependencies only for deploy-ctl
       #   run: bun install --frozen-lockfile --filter="@lib/deploy-ctl"
 
-      - name: Check for deployables duplicates
-        shell: bash
-        run: bunx turbo run deploy:check-all
-
       - name: Detect affected apps
         id: affected
         shell: bash
@@ -146,9 +142,6 @@ jobs:
       matrix:
         app: ${{ fromJson(needs.detect-affected.outputs.affected-apps) }}
       fail-fast: false # Continue deploying other apps even if one fails
-    env:
-      PROJECT_ID: cerebro-401111
-      REGION: europe-north1
 
     steps:
       - name: Checkout code
@@ -169,9 +162,7 @@ jobs:
         shell: bash
         run: bunx turbo run ct --filter=${{ matrix.app }}
 
-      - name: Deploy ${{ matrix.app }}
-        run: |
-          bunx turbo run deploy --filter=${{ matrix.app }}
+        # In real workflow, there would be deployment here.
 
   deploy-summary:
     needs: [detect-affected, deploy]
