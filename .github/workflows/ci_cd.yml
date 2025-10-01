@@ -43,8 +43,12 @@ jobs:
         with:
           bun-version: 1.2.23
 
-      - name: Install dependencies only for deploy-ctl
-        run: bun install --frozen-lockfile --filter="@lib/deploy-ctl"
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      # TODO this doesnt install turborepo?
+      # - name: Install dependencies only for deploy-ctl
+      #   run: bun install --frozen-lockfile --filter="@lib/deploy-ctl"
 
       - name: Check for deployables duplicates
         shell: bash
