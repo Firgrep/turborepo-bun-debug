@@ -56,57 +56,6 @@ jobs:
         run: |
           set -euo pipefail
 
-          if [[ ${{ github.event_name }} == "workflow_dispatch" ]]; then
-            DEPLOY_MODE="${{ github.event.inputs.deploy_mode }}"
-            
-            case "$DEPLOY_MODE" in
-              "manual")
-                PACKAGES_INPUT="${{ github.event.inputs.packages }}"
-
-                if [[ -z "$PACKAGES_INPUT" ]]; then
-                  echo "❌ Manual mode requires packages to be specified"
-                  echo "apps=[]" >> "$GITHUB_OUTPUT"
-                  echo "has-affected=false" >> "$GITHUB_OUTPUT"
-                  exit 1
-                fi
-
-                PACKAGES_JSON=$(echo "$PACKAGES_INPUT" | jq -Rc 'split(",") | map(gsub("^\\s+|\\s+$"; "")) | map(select(length > 0))')
-                echo "apps=$PACKAGES_JSON" >> "$GITHUB_OUTPUT"
-                echo "has-affected=true" >> "$GITHUB_OUTPUT"
-                echo "✍️ Manual deployment requested for: $PACKAGES_JSON"
-                exit 0
-                ;;
-              "all")
-                # Deploy all apps with deploy script
-                ALL_APPS=$(bunx turbo ls --output=json | jq -c '.packages.items | map(.name) | map(select(startswith("@lib/") | not))')
-                echo "apps=$ALL_APPS" >> "$GITHUB_OUTPUT"
-                echo "has-affected=true" >> "$GITHUB_OUTPUT"
-                echo "🚀 Deploying all apps: $ALL_APPS"
-                exit 0
-                ;;
-              "none")
-                echo "apps=[]" >> "$GITHUB_OUTPUT"
-                echo "has-affected=false" >> "$GITHUB_OUTPUT"
-                echo "🚫 No deployment requested"
-                exit 0
-                ;;
-              "auto")
-                echo "🤖 Proceeding with automatic detection..."
-                ;;
-            esac
-          fi
-
-          CURRENT_BRANCH=$(git branch --show-current)
-          if [[ "$CURRENT_BRANCH" != "main" ]]; then
-              git fetch origin main:main
-          fi
-
-          if [[ ${{ github.event_name }} == "workflow_dispatch" ]]; then
-            echo "Manually triggered workflow detected. Customizing base and head..."
-            TURBO_SCM_BASE=$(git merge-base "origin/main" "${{ github.ref_name }}")
-            TURBO_SCM_HEAD=$(git rev-parse HEAD)
-          fi
-
           # Get JSON dry run from Turbo (some versions use --dry=json, others --dry-run=json).
           # Try both; fall back to empty array on failure.
           RAW_JSON="$(
