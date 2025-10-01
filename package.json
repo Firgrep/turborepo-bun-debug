@@ -11,12 +11,13 @@
         ],
         "catalog": {
             "commander": "^14",
-            "dayjs": "1.11.0",
+            "dayjs": "1.10.0",
             "mongodb": "6.8.0",
             "zod": "^3.23.8"
         },
         "catalogs": {
             "dev": {
+                "@types/bun": "1.2.23",
                 "prettier": "3.3.3",
                 "tidyclass": "^0.1.0",
                 "typescript": "^5.8.0"

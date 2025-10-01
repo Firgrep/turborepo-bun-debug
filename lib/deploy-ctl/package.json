@@ -15,8 +15,7 @@
         "deploy:check-all": "bun run deploy-ctl check"
     },
     "dependencies": {
-        "commander": "catalog:",
-        "zod": "catalog:"
+        "commander": "catalog:"
     },
     "devDependencies": {
         "@types/bun": "catalog:dev",

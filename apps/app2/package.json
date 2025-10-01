@@ -1,5 +1,5 @@
 {
-    "name": "listing_images_publisher",
+    "name": "app2",
     "module": "index.ts",
     "type": "module",
     "scripts": {
@@ -9,18 +9,10 @@
         "start:prod": "bun run index.ts"
     },
     "dependencies": {
-        "@lib/deploy-ctl": "workspace:*",
-        "@lib/http-server-listen": "workspace:*",
-        "@lib/mongo-watcher": "workspace:*",
-        "@lib/publisher": "workspace:*",
-        "@lib/types": "workspace:*",
-        "@lib/config-loader": "workspace:*",
-        "@lib/utils": "workspace:*",
         "mongodb": "catalog:"
     },
     "devDependencies": {
         "@types/bun": "catalog:dev",
-        "@types/express": "catalog:dev",
         "typescript": "catalog:dev"
     }
 }
