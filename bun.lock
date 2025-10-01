@@ -4,7 +4,7 @@
     "": {
       "name": "dp",
       "devDependencies": {
-        "turbo": "^2.5.9-canary.0",
+        "turbo": "2.5.9-canary.0",
       },
     },
     "apps/app1": {
